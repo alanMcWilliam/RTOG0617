@@ -13,16 +13,16 @@ library(summarytools)
 #############################################
 ### load in data and select variables for analysis
 
-RTOGpatientgData <- read.csv("C:\\Users\\alan_\\Desktop\\RTOG0617\\dataSheets\\NCT00533949-D1-Dataset.csv")
+RTOGpatientData <- read.csv("C:\\Users\\alan_\\Desktop\\RTOG0617\\dataSheets\\NCT00533949-D1-Dataset.csv")
 RTOGheartDose <- read.csv("C:\\Users\\alan_\\Desktop\\RTOG0617\\heartDose.csv")
 
-RTOGpatientgData <- merge(RTOGpatientgData, RTOGheartDose, by = 'patid')
+RTOGpatientData <- merge(RTOGpatientData, RTOGheartDose, by = 'patid')
 
-summary(RTOGpatientgData$heartRegion)
+summary(RTOGpatientData$heartRegion)
 
 
-view_df(RTOGpatientgData)
-View(dfSummary(RTOGpatientgData))
+view_df(RTOGpatientData)
+View(dfSummary(RTOGpatientData))
 
 # select variables for multi-variable analysis
 # some patients have GTV volume, others ITV - search and keep a combined colum for these
@@ -30,21 +30,28 @@ View(dfSummary(RTOGpatientgData))
 # zubrod - all patients 0 or 1 for trial inclusion
 ##########
 # other heart stats available in datasheets - v5_heart and v30_heart
-RTOGmv <- RTOGpatientgData %>%
+RTOGmv <- RTOGpatientData %>%
   mutate(tumourVolume = case_when(volume_gtv > 0 ~ volume_gtv,
                                   is.na(volume_gtv) ~ volume_itv)) %>%
   mutate(doseLevel = case_when(arm == 1 ~ 1,# 'low',
                                arm == 2 ~ 2, #'high',
                                arm == 3 ~ 1, #'low',
-                               arm == 4 ~ 2 )) %>%# 'high')) %>%
+                               arm == 4 ~ 2 )) %>%  #'high'
   mutate(chemo = case_when(arm == 1 ~ 0, #'no',
                            arm == 2 ~ 0, #'no',
                            arm == 3 ~ 1, #'yes',
-                           arm == 4 ~ 1 )) %>% #'yes')) %>%
-  select(patid, survival_months, survival_status, heartRegion, tumourVolume, age, gender, doseLevel, chemo, zubrod, rt_technique, smoke_hx, race, v5_heart, v30_heart, nonsquam_squam, pet_staging, dmean_lung, volume_ptv, grade3_toxicity)
-### ajcc_stage_grp (pt IIIA or IIIB)
+                           arm == 4 ~ 1 )) %>%   #'yes'
+  filter(!is.na(smoke_hx)) %>%
+  mutate(smoking = case_when(smoke_hx == 1 ~ 1,
+                             smoke_hx == 2 ~ 1,
+                             smoke_hx == 3 ~ 2,
+                             smoke_hx == 4 ~ 2,
+                             smoke_hx == 9 ~ 3)) %>%
+  select(patid, survival_months, survival_status, heartRegion, tumourVolume, age, gender, doseLevel, chemo, zubrod, rt_technique, smoke_hx, race, v5_heart, v30_heart, nonsquam_squam, pet_staging, dmean_lung, volume_ptv, grade3_toxicity, smoking)
+
 RTOGmv <- RTOGmv[RTOGmv$race != 4, ]
 
+View(dfSummary(RTOGmv))
 
 ### some quick summary stats
 View(RTOGmv)
@@ -195,7 +202,7 @@ uniCox <- coxph(Surv(time = survival_months, event = survival_status)~v30_heart,
 uniCox
 
 
-multiCox_Orig_tumourlog_heartRegion <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + heartRegion + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
+multiCox_Orig_tumourlog_heartRegion <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + heartRegion + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoking),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_heartRegion)
 multiCox_Orig_tumourlog_heartV5 <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + v5_heart + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_heartV5)
