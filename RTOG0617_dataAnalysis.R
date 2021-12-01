@@ -20,6 +20,10 @@ RTOGheartDose <- read.csv("C:\\Users\\alan_\\Desktop\\RTOG0617\\heartDose.csv")
 RTOGpatientData <- merge(RTOGpatientData, RTOGheartDose, by = 'patid')
 
 summary(RTOGpatientData$heartRegion)
+sd(RTOGpatientData$heartRegion)
+summary(RTOGpatientData$v5_heart)
+
+
 
 
 view_df(RTOGpatientData)
