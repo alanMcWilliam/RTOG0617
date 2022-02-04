@@ -22,12 +22,13 @@ RTOGpatientData <- merge(RTOGpatientData, RTOGheartDose, by = 'patid')
 summary(RTOGpatientData$heartRegion)
 sd(RTOGpatientData$heartRegion)
 summary(RTOGpatientData$v5_heart)
+summary(RTOGpatientData$v30_heart)
 
 
-
+View(RTOGpatientData)
 
 view_df(RTOGpatientData)
-View(dfSummary(RTOGpatientData))
+stview(dfSummary(RTOGpatientData))
 
 # select variables for multi-variable analysis
 # some patients have GTV volume, others ITV - search and keep a combined colum for these
@@ -38,10 +39,10 @@ View(dfSummary(RTOGpatientData))
 RTOGmv <- RTOGpatientData %>%
   mutate(tumourVolume = case_when(volume_gtv > 0 ~ volume_gtv,
                                   is.na(volume_gtv) ~ volume_itv)) %>%
-  mutate(doseLevel = case_when(arm == 1 ~ 1,# 'low',
-                               arm == 2 ~ 2, #'high',
-                               arm == 3 ~ 1, #'low',
-                               arm == 4 ~ 2 )) %>%  #'high'
+  mutate(doseLevel = case_when(arm == 1 ~ 0,# 'low',
+                               arm == 2 ~ 1, #'high',
+                               arm == 3 ~ 0, #'low',
+                               arm == 4 ~ 1 )) %>%  #'high'
   mutate(chemo = case_when(arm == 1 ~ 0, #'no',
                            arm == 2 ~ 0, #'no',
                            arm == 3 ~ 1, #'yes',
@@ -56,7 +57,7 @@ RTOGmv <- RTOGpatientData %>%
 
 RTOGmv <- RTOGmv[RTOGmv$race != 4, ]
 
-View(dfSummary(RTOGmv))
+stview(dfSummary(RTOGmv))
 
 ### some quick summary stats
 View(RTOGmv)
@@ -70,8 +71,6 @@ summary(RTOGmv$v5_heart)
 summary(RTOGmv$v30_heart)
 summary(RTOGmv$dmean_lung)
 
-# summary of dataframe
-view(dfSummary(RTOGmv))
 
 ######################################################################
 #### 1. testing the correct functional form of tumour volume for cox model
@@ -104,21 +103,21 @@ plot(RTOGmv$tumourVolume, RTOGmv$volume_ptv)
 
 ### plot histogram of PTV and log(PTV) volume
 ggplot(RTOGmv, aes(x=volume_ptv)) + 
-  geom_histogram(binwidth=25, color="black", fill="white") +
+  geom_histogram(binwidth=50, color="black", fill="lightblue") +
   theme_classic()
 
 ggplot(RTOGmv, aes(x=log(volume_ptv))) + 
-  geom_histogram(binwidth=0.1, color="black", fill="white") +
+  geom_histogram(binwidth=0.1, color="black", fill="lightblue") +
   theme_classic()
 
 
 ### plot histogram of tumour and log(tumour) volume
 ggplot(RTOGmv, aes(x=tumourVolume)) + 
-  geom_histogram(binwidth=25, color="black", fill="white") +
+  geom_histogram(binwidth=25, color="black", fill="lightblue") +
   theme_classic()
 
 ggplot(RTOGmv, aes(x=log(tumourVolume))) + 
-  geom_histogram(binwidth=0.1, color="black", fill="white") +
+  geom_histogram(binwidth=0.1, color="black", fill="lightblue") +
   theme_classic()
 
 #### test function form for inclusion in the cox model
@@ -172,11 +171,6 @@ anova(multiCox_Orig_tumour, multiCox_Orig_tumourlog, test = "Chisq")
 #########################################
 ####### 2. Heart doses
 ########################################
-## need to include lung mean dose
-
-###AGE?
-## factor(chemo) +  factor(rt_technique)
-
 
 ## heart stats 
 summary(RTOGmv$heartRegion)
@@ -217,7 +211,7 @@ summary(multiCox_Orig_tumourlog_heartV30)
 multiCox_Orig_tumourlog_baseline <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_baseline)
 
-AIC(multiCox_baseline)
+AIC(multiCox_Orig_tumourlog_baseline)
 AIC(multiCox_Orig_tumourlog_heartV5)
 AIC(multiCox_Orig_tumourlog_heartV30)
 AIC(multiCox_Orig_tumourlog_heartRegion)
@@ -356,25 +350,27 @@ View(boot_elastic)
 generateStats <- function(df){
   for(i in colnames(df)){
     print(i)
-    #print(mean(df[[i]]))
-    #print(summary(df[[i]]))
-    #print(quantile(df[[i]], probs = c(0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95)))
+    print(mean(df[[i]]))
+    print(summary(df[[i]]))
+    print(quantile(df[[i]], probs = c(0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95)))
     print(sum(df[[i]] > 0))
     
     #plot histogram
-    ##LASSO y 0, 150, seq -0.05, 0.05
-    #  ggplot(data=df, aes(df[[i]])) + 
-    #    geom_histogram(breaks=seq(-0.05,0.05, by = 0.001),
-    #                 col = "skyblue", fill = "lightblue") +
-    #    labs(title = i, x = "coefficent" ) +
-    #    ylim(0,50) +
-    #    theme(panel.background = element_blank())
+    #LASSO y 0, 150, seq -0.05, 0.05
+    ggplot(data=df, aes(df[[i]])) + 
+      geom_histogram(breaks=seq(-0.05,0.05, by = 0.001),
+                   col = "skyblue", fill = "lightblue") +
+      labs(title = i, x = "coefficent" ) +
+      ylim(0,50) +
+      theme(panel.background = element_blank())
     
-    #ggsave(paste("C:\\Users\\alan_\\Desktop\\RTOG0617\\bootstrapFigures\\", i, ".jpg", sep=""))
+    ggsave(paste("C:\\Users\\alan_\\Desktop\\RTOG0617\\bootstrapFigures\\", i, ".jpg", sep=""))
   }
 }
 
 generateStats(boot_elastic)
+generateStats(boot_rigid)
+generateStats(boot_LASSO)
 
 #write/read data in from bootstarpping
 write.csv(boot_rigid, "C:\\Users\\alan_\\Desktop\\RTOG0617\\bootstrapped\\bootRigid500.csv")
@@ -428,6 +424,9 @@ plot(RTOGmv$heartRegion, RTOGmv$v5_heart)
 plot(RTOGmv$heartRegion, RTOGmv$v30_heart)
 plot(RTOGmv$v5_heart, RTOGmv$v30_heart)
 
+cor.test(RTOGmv$heartRegion, RTOGmv$v5_heart)
+cor.test(RTOGmv$heartRegion, RTOGmv$v30_heart)
+cor.test(RTOGmv$v5_heart, RTOGmv$v30_heart)
 
 ## tumour with heart stats
 plot(RTOGmv$v5_heart, log(RTOGmv$tumourVolume))
@@ -488,6 +487,7 @@ ggplot(RTOGmv, mapping = aes(x = factor(doseLevel), y = v5_heart)) + geom_boxplo
 
 ## boxplot for heart v5, high and low dose arms
 tapply(RTOGmv$v30_heart, RTOGmv$doseLevel, summary)
+wilcox.test(RTOGmv$heartRegion~RTOGmv$survival_status)
 
 ggplot(RTOGmv, mapping = aes(x = factor(doseLevel), y = v30_heart)) + geom_boxplot() + theme_classic() +
   labs(title = "Treatment dose arm", x = "Dose arm", y = "Heart v30 (Gy)", fill = "") +
@@ -500,6 +500,9 @@ ggplot(RTOGmv, mapping = aes(x = factor(doseLevel), y = v30_heart)) + geom_boxpl
 
 ## boxplot patients dead and alive - heart region dose
 tapply(RTOGmv$heartRegion, RTOGmv$survival_status, summary)
+wilcox.test(RTOGmv$heartRegion~RTOGmv$survival_status)
+wilcox.test(RTOGmv$v30_heart~RTOGmv$survival_status)
+wilcox.test(RTOGmv$v5_heart~RTOGmv$survival_status)
 
 ggplot(RTOGmv, mapping = aes(x = factor(survival_status), y = heartRegion)) + geom_boxplot() + theme_classic() +
   labs(title = "Treatment dose arm", x = "Dose arm", y = "Heart Region Dose (Gy)", fill = "") +
