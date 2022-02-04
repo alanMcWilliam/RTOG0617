@@ -420,8 +420,8 @@ coef(md3)
 ################################################
 ## make some plots
 
-plot(RTOGmv$heartRegion, RTOGmv$v5_heart)
-plot(RTOGmv$heartRegion, RTOGmv$v30_heart)
+plot(RTOGmv$heartRegion, RTOGmv$v5_heart, xlab = "Heart region (Gy)", ylab = "Heart v5")
+plot(RTOGmv$heartRegion, RTOGmv$v30_heart, xlab = "Heart region (Gy)", ylab = "Heart v30")
 plot(RTOGmv$v5_heart, RTOGmv$v30_heart)
 
 cor.test(RTOGmv$heartRegion, RTOGmv$v5_heart)
