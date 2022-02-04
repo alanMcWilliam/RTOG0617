@@ -4,6 +4,7 @@
 
 
 summary(RTOGmv$heartRegion)
+tapply(RTOGmv$tumourVolume, RTOGmv$doseLevel, summary)
 
 RTOGmv_limited <- RTOGmv %>%
   filter(heartRegion < 600) 
