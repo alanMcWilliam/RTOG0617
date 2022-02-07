@@ -78,9 +78,9 @@ summary(RTOGmv$dmean_lung)
 #########################################################################
 
 uniCoxPTV <- coxph(Surv(time = survival_months, event = survival_status)~volume_ptv, data = RTOGmv)
-uniCoxPTV
+summary(uniCoxPTV)
 uniCoxPTVlog <- coxph(Surv(time = survival_months, event = survival_status)~log(volume_ptv), data = RTOGmv)
-uniCoxPTVlog
+summary(uniCoxPTVlog)
 
 AICPTV <- AIC(uniCoxPTV)
 AICPTV
@@ -89,9 +89,9 @@ AICPTVlog
 
 
 uniCoxTumour <- coxph(Surv(time = survival_months, event = survival_status)~tumourVolume, data = RTOGmv)
-uniCoxTumour
+summary(uniCoxTumour)
 uniCoxTumourlog <- coxph(Surv(time = survival_months, event = survival_status)~log(tumourVolume), data = RTOGmv)
-uniCoxTumourlog
+summary(uniCoxTumourlog)
 
 AICtumour <- AIC(uniCoxTumour)
 AICtumour
@@ -203,12 +203,12 @@ uniCox
 
 multiCox_Orig_tumourlog_heartRegion <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + heartRegion + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoking),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_heartRegion)
-multiCox_Orig_tumourlog_heartV5 <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + v5_heart + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
+multiCox_Orig_tumourlog_heartV5 <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + v5_heart + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoking),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_heartV5)
-multiCox_Orig_tumourlog_heartV30 <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + v30_heart + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
+multiCox_Orig_tumourlog_heartV30 <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + v30_heart + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoking),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_heartV30)
 
-multiCox_Orig_tumourlog_baseline <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoke_hx),  data = RTOGmv)
+multiCox_Orig_tumourlog_baseline <- coxph(Surv(time = survival_months, event = survival_status)~dmean_lung + age + factor(doseLevel) + grade3_toxicity + log(tumourVolume) + factor(zubrod) + factor(pet_staging) + gender + factor(nonsquam_squam) + factor(smoking),  data = RTOGmv)
 summary(multiCox_Orig_tumourlog_baseline)
 
 AIC(multiCox_Orig_tumourlog_baseline)
